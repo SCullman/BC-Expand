@@ -76,7 +76,7 @@ page 50101 "Contact Relation"
 }
 ```
 This allows me to enter a few relations:   
-![Image of a few contact relations]("assets/ContactRelationList.jpg")
+![Image of a few contact relations](assets/ContactRelationList.jpg)
 
 
 ### 
