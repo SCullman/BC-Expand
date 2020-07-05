@@ -1,10 +1,10 @@
-This is a spike project to explore both the REST Webservices and the new custom API of Business Central. My interest here is especially in the O-Data navigation features. I would like to query whole entity trees with only  a single call using $expand. The [documentation](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-containments-associations) I have found so far on the subject is extremely scarce and also outdated.  
+This is a spike project to explore both the REST Webservices and the new custom API of Business Central. My interest here is especially in the O-Data navigation features. I would like to query whole entity trees with only a single call using $expand. The [documentation](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-containments-associations) I have found so far on the subject is extremely scarce and also outdated.  
 
 ### A simple relation beween contacts
 
-For this purpose there is a simple table called `Tab50100.ContactRelation`.
+For this purpose, there is a simple table called `Tab50100.ContactRelation`.
 
-```
+``` lang=AL
 table 50100 "Contact Relation"
 {
     Caption = 'Contact Relation';
