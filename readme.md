@@ -5,7 +5,7 @@ This is a spike project to explore both the REST Webservices and the new custom 
 
 For this purpose, there is a simple table called `Tab50100.ContactRelation`.
 
-``` lang=AL
+``` AL
 table 50100 "Contact Relation"
 {
     Caption = 'Contact Relation';
@@ -40,7 +40,7 @@ For each contact a list of their relationships (e.g. "Child" or "Partner of") to
 
 For a basic editing UI, I created a page of type list `Page50101.ContactRelation`:
 
-```
+``` AL
 page 50101 "Contact Relation"
 {
     ApplicationArea = All;
@@ -145,8 +145,9 @@ This page needs to be published as webservice with the service name `Contact`. A
 
 These association have the name of the field with the table relation folloewd by `_Link`. PLease note the type of the navigation property. While a table relation is a look up, which points to a single entity, the type indicates a _collection_ of type Contact.
 
-`{{serviceurl}}/Company('{{company}}')/ContactRelation('R01')?$expand=Relation_to_Contact_No_Link, Contact_No_Link` will return for our example data
-```json
+`{{serviceurl}}/Company('{{company}}')/ContactRelation('R01')?$expand=Relation_to_Contact_No_Link, Contact_No_Link` will return for our example data: 
+
+``` json
 {
     "@odata.context": "{{serviceurl}}/$metadata#Company('{{company}}')/ContactRelation/$entity",
     "@odata.etag": "W/\"JzQ0O29SbGVDYm93dW5lbDBVVjlFcUdDV0EyVHF2V2R3Z3RUWml2NHVSZTZYcUU9MTswMDsn\"",
@@ -159,7 +160,7 @@ These association have the name of the field with the table relation folloewd by
             "@odata.etag": "W/\"JzQ0O1RkTWthTXZ6SzNBNGJrY3hmeDZKTzFMaXBGUVpSMVRTeWoreWtjZ056YlU9MTswMDsn\"",
             "No": "KT200058",
             "Name": "Jan Christiansen",
-            ...
+            //... more fields
         }
     ],
     "Relation_to_Contact_No_Link": [
@@ -167,7 +168,7 @@ These association have the name of the field with the table relation folloewd by
             "@odata.etag": "W/\"JzQ0O3gwV05ZaVMyVElhTFgzZjVwWVVUdXhNUm92TWt4QWZqR2twQURVYTBIOHc9MTswMDsn\"",
             "No": "KT200038",
             "Name": "Karen Berg",
-            ...
+            //... more fields
         }
     ]
 }
