@@ -145,9 +145,9 @@ This page needs to be published as webservice with the service name `Contact`. A
 
 These association have the name of the field with the table relation folloewd by `_Link`. PLease note the type of the navigation property. While a table relation is a look up, which points to a single entity, the type indicates a _collection_ of type Contact.
 
-`{{serviceurl}}/Company('{{company}}')/ContactRelation('R01')?$expand=Relation_to_Contact_No_Link, Contact_No_Link` will return for our example data: 
+`...ContactRelation('R01')?$expand=Relation_to_Contact_No_Link, Contact_No_Link` will return for our example data: 
 
-``` json
+``` js
 {
     "@odata.context": "{{serviceurl}}/$metadata#Company('{{company}}')/ContactRelation/$entity",
     "@odata.etag": "W/\"JzQ0O29SbGVDYm93dW5lbDBVVjlFcUdDV0EyVHF2V2R3Z3RUWml2NHVSZTZYcUU9MTswMDsn\"",
