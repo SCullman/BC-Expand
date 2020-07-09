@@ -3,9 +3,9 @@ This is a spike project to explore both the REST Webservices and the new custom 
 ## Setup
 ### A simple relation beween contacts
 
-For this purpose there is a simple table called `Tab50100.ContactRelation`.
+For this purpose, there is a simple table called `Tab50100.ContactRelation`.
 
-```
+``` lang=AL
 table 50100 "Contact Relation"
 {
     Caption = 'Contact Relation';
@@ -77,7 +77,7 @@ page 50101 "Contact Relation"
 }
 ```
 This allows me to enter a few relations:   
-![Image of a few contact relations]("assets/ContactRelationList.jpg")
+![Image of a few contact relations](assets/ContactRelationList.jpg)
 
 
 ## OData Web Services
