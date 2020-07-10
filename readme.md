@@ -481,7 +481,7 @@ When I query the API with $expand and examine the data, it turns out that `conta
 
 It turns out that when I change the order of the fields for Contact Relation Api and move the position of field relationToContactNo above the field contactNo, `contact` will hold the contact for **relationToContactNo**.
 
-So far I have not found a way to get and use both navigation properties 🤷‍♂️. And I  dislike the idea that EntityName is used as the name of the navigation 🤦‍♂️.
+
 
 ### Containments
 
@@ -503,18 +503,14 @@ Now the navigation properties for contact look like this:
 ```
 The name of the part relations is ignored. Instead, we have to declare EntityName and EntitySchema **again**. And it has to be the very same values as defined before on page 50102.
 
-### Conclusion
-The right way is to separate APIs from other APIs or even the UI and develop them independently. Also, a simple association no longer results in a collection.
+### Conclusion for Custom API
+The direction Microsoft and Business Central are taking with the Custom API is the right one.
+I appreciate the clean separatation of APIs from other APIs or even the UI. They can develop without dependencies. 
+
+Also, a simple association no longer results in a collection.  I also like that both required AL code and resulting $metadata are more dense.
+
+So far I have not found a way to get and use multiple navigation properties of the same type in one entity.And I dislike the idea that EntityName is used as the name of the navigation 🤦‍♂️. Naming is serious. 
 
 I don't think I'll get used to the Custom API that quickly, at least when I want to use custom APIs for querying data.
 
 I hope I'm wrong and overlook something obvious.
-
-
-
-
-
-
-
-
-
