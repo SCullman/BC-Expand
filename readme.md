@@ -1,9 +1,9 @@
 ### Business Central:
 # Navigation in OData Webservices and Custom API
 
-This is a spike project to explore both the OData Webservices and the new custom API of Business Central. 
+This is a spike project and my notes about my exploration into both OData Webservices and the new custom API of Business Central. 
 
-My attention is on querying object hierarchies with a single request using the OData navigation features and the query option `$expand`. 
+My attention is on querying object hierarchies with a single request using OData navigation features and its query option `$expand`. 
 
 ## Setup
 ### A simple relation between contacts
@@ -356,7 +356,7 @@ Lets give it a try and lets query `...Contact('KT200038')?$expand=ContactRelatio
 
 ## Custom APIs
 
-Business Central introduced a new default API and also the ability to create custom APIs. These APIs do not reuse pages that were originally designed and intended for the user interface for web services. Besides, these APIs support versioning. A new service endpoint must also be used.
+Business Central introduced a new default API and also the ability to create custom APIs. These APIs do not reuse pages that were originally designed and intended for the user interface for web services. Besides, these APIs support versioning. A new [service endpoint](https://docs.microsoft.com/de-de/dynamics-nav/api-reference/v1.0/endpoints-apis-for-dynamics) must also be used.
 
 Big advantage: Each API is decoupled from others and can develop on its own.
 
@@ -505,11 +505,11 @@ The name of the part relations is ignored. Instead, we have to declare EntityNam
 
 ### Conclusion for Custom API
 The direction Microsoft and Business Central are taking with the Custom API is the right one.
-I appreciate the clean separatation of APIs from other APIs or even the UI. They can develop without dependencies. 
+I appreciate the clean separation of APIs from other APIs or even the UI. They can develop without dependencies. 
 
-Also, a simple association no longer results in a collection.  I also like that both required AL code and resulting $metadata are more dense.
+Also, a simple association no longer results in a collection.  I also like that both required AL code and resulting $metadata are now denser.
 
-So far I have not found a way to get and use multiple navigation properties of the same type in one entity.And I dislike the idea that EntityName is used as the name of the navigation 🤦‍♂️. Naming is serious. 
+So far I have not found a way to get and use multiple navigation properties of the same type in one entity. And I dislike the idea that EntityName is used as the name of the navigation. Naming is serious, and should not be overridden by simple conventions like a sequence of fields.
 
 I don't think I'll get used to the Custom API that quickly, at least when I want to use custom APIs for querying data.
 
