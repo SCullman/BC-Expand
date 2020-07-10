@@ -1,7 +1,9 @@
-# Business Central: Navigation in Webservices and API
-This is a spike project to explore both the REST Webservices and the new custom API of Business Central. 
+### Business Central:
+# Navigation in OData Webservices and Custom API
 
-My attention is on querying large object hierarchies with a single request using the OData navigation features and the query option $expand. 
+This is a spike project to explore both the OData Webservices and the new custom API of Business Central. 
+
+My attention is on querying object hierarchies with a single request using the OData navigation features and the query option $expand. 
 
 ## Setup
 ### A simple relation between contacts
