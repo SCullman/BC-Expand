@@ -1,12 +1,12 @@
 page 50102 "Contact Relation Api"
 {
 
-    APIGroup = 'nav';
+    APIGroup = 'queries';
     APIPublisher = 'publisher';
     APIVersion = 'v1.0';
     DelayedInsert = true;
-    EntityName = 'relation';
-    EntitySetName = 'relations';
+    EntityName = 'contactRelation';
+    EntitySetName = 'contactRelations';
     ODataKeyFields = "No.";
     PageType = API;
     SourceTable = "Contact Relation";
@@ -17,26 +17,10 @@ page 50102 "Contact Relation Api"
         {
             repeater(General)
             {
-                field(number; "No.")
-                {
-                    ApplicationArea = All;
-                    Caption = 'no';
-                }
-                field(contactNo; "Contact No.")
-                {
-                    ApplicationArea = All;
-                    Caption = 'contactNo';
-                }
-                field(relationToContactNo; "Relation to Contact No.")
-                {
-                    ApplicationArea = All;
-                    Caption = 'relationToContactNo';
-                }
-                field(description; "Description")
-                {
-                    ApplicationArea = All;
-                    Caption = 'description';
-                }
+                field(number; "No.") { }
+                field(contactNo; "Contact No.") { }
+                field(description; "Description") { }
+                field(relationToContactNo; "Relation to Contact No.") { }
             }
         }
     }

@@ -3,7 +3,7 @@
 
 This is a spike project to explore both the OData Webservices and the new custom API of Business Central. 
 
-My attention is on querying object hierarchies with a single request using the OData navigation features and the query option $expand. 
+My attention is on querying object hierarchies with a single request using the OData navigation features and the query option `$expand`. 
 
 ## Setup
 ### A simple relation between contacts
@@ -154,7 +154,7 @@ This page needs to be published as web service with the service name `Contact`. 
 </EntityType>
 ```
 
-These associations have the name of the field with the table relation followed by `_Link`. Please note the type of the navigation property. While a table relation is a lookup, which points to a single entity, the type indicates a _collection_ of type Contact.
+These associations have the name of the field with the table relation followed by `_Link`. Please note the type of navigation property. While a table relation is a lookup, which points to a single entity, the type indicates a _collection_ of type Contact.
 
 `...ContactRelation('R01')?$expand=Relation_to_Contact_No_Link, Contact_No_Link` will return for our example data: 
 
@@ -353,3 +353,168 @@ Lets give it a try and lets query `...Contact('KT200038')?$expand=ContactRelatio
     ]
 }
 ```
+
+## Custom APIs
+
+Business Central introduced a new default API and also the ability to create custom APIs. These APIs do not reuse pages that were originally designed and intended for the user interface for web services. Besides, these APIs support versioning. A new service endpoint must also be used.
+
+Big advantage: Each API is decoupled from others and can develop on its own.
+
+For this purpose, there is a new page type: API.
+
+Following our example from above, a page for ContactRelations now looks like this:
+
+```AL
+page 50102 "Contact Relation API"
+{
+    PageType = API;
+    APIGroup = 'query';
+    APIPublisher = 'publisher';
+    APIVersion = 'v1.0';
+    EntityName = 'contactRelation';
+    EntitySetName = 'contactRelations';
+    ODataKeyFields = "No.";
+    SourceTable = "Contact Relation";
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field(number; "No.") { }
+                field(contactNo; "Contact No.") { }
+                field(description; "Description") { }
+                field(relationToContactNo; "Relation to Contact No.") { }
+            }
+        }
+    }
+}
+```
+
+May I be forgiven for not using GUIDs as Ids here. Right now I just want to read, not write.
+
+As you notice, a few changes in the properties of the page. ApplicationArea and UsageCategory make no sense any more, instead `APIGroup`, `APIPublisher`, and `APIVersion` have to be defined.
+
+Also we define `EntityName` and `EntitySetName` here.
+
+I also did not set any `ApplicationArea` or `Caption` for fields. Any value of caption is ignored anyway.
+
+The data itself is again OData V4.
+
+Therfore we can query $metadata and check the entity type:
+
+```xml
+<EntityType Name="contactRelation">
+    <Key>
+        <PropertyRef Name="number" />
+    </Key>
+    <Property Name="number" Type="Edm.String" Nullable="false" MaxLength="10" />
+    <Property Name="contactNo" Type="Edm.String" MaxLength="20" />
+    <Property Name="description" Type="Edm.String" MaxLength="50" />
+    <Property Name="relationToContactNo" Type="Edm.String" MaxLength="20" />
+</EntityType>
+```
+### Association
+
+No navigation properties yet. Well, as the custom API is independent of the OData web service, it is required to define also an API for Contact:
+
+``` al
+page 50103 "Contact API"
+{
+    APIGroup = 'queries';
+    APIPublisher = 'publisher';
+    APIVersion = 'v1.0';
+    DelayedInsert = true;
+    EntityName = 'contact';
+    EntitySetName = 'contacts';
+    PageType = API;
+    SourceTable = Contact;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field(number; "No.") { }
+                field(firstName; "First Name") { }
+                field(surname; Surname) { }
+                field(name; Name) { }
+                field(companyNo; "Company No.") { }
+            }
+        }
+    }
+}
+```
+
+Now both `contactRelation` and `contact` are listed as types in $metadata:
+
+```
+<EntityType Name="contactRelation">
+    <Key>
+        <PropertyRef Name="number" />
+    </Key>
+    <Property Name="number" Type="Edm.String" Nullable="false" MaxLength="10" />
+    <Property Name="contactNo" Type="Edm.String" MaxLength="20" />
+    <Property Name="description" Type="Edm.String" MaxLength="50" />
+    <Property Name="relationToContactNo" Type="Edm.String" MaxLength="20" />
+    <NavigationProperty Name="contact" Type="Microsoft.NAV.contact" ContainsTarget="true" />
+</EntityType>
+<EntityType Name="contact">
+    <Key>
+        <PropertyRef Name="number" />
+    </Key>
+    <Property Name="number" Type="Edm.String" Nullable="false" MaxLength="20" />
+    <Property Name="firstName" Type="Edm.String" MaxLength="30" />
+    <Property Name="surname" Type="Edm.String" MaxLength="30" />
+    <Property Name="name" Type="Edm.String" MaxLength="100" />
+    <Property Name="id" Type="Edm.Guid" />
+    <Property Name="companyNo" Type="Edm.String" MaxLength="20" />
+    <NavigationProperty Name="contact" Type="Microsoft.NAV.contact" ContainsTarget="true" />
+</EntityType>
+```
+
+Also, both types have now a _single_ navigation property `contact`. This looks weird to me, as I expected at least two navigation properties for contactRelation.
+
+When I query the API with $expand and examine the data, it turns out that `contact` in contactRelation holds the contact for **contactNo**. Similarly when investigating the contact type, there the contact of the **companyNo** is revealed.
+
+It turns out that when I change the order of the fields for Contact Relation Api and move the position of field relationToContactNo above the field contactNo, `contact` will hold the contact for **relationToContactNo**.
+
+So far I have not found a way to get and use both navigation properties 🤷‍♂️. And I  dislike the idea that EntityName is used as the name of the navigation 🤦‍♂️.
+
+### Containments
+
+Maybe we get more insight into containments.
+
+Therefore I add the following part to ContactRelationApi:
+```
+    part(relations; 50102)
+    {
+        EntityName = 'contactRelation';
+        EntitySetName = 'contactRelations';
+    }
+```
+
+Now the navigation properties for contact look like this:
+```xml
+<NavigationProperty Name="contactRelations" Type="Collection(Microsoft.NAV.contactRelation)" ContainsTarget="true" />
+<NavigationProperty Name="contact" Type="Microsoft.NAV.contact" ContainsTarget="true" />
+```
+The name of the part relations is ignored. Instead, we have to declare EntityName and EntitySchema **again**. And it has to be the very same values as defined before on page 50102.
+
+### Conclusion
+The right way is to separate APIs from other APIs or even the UI and develop them independently. Also, a simple association no longer results in a collection.
+
+I don't think I'll get used to the Custom API that quickly, at least when I want to use custom APIs for querying data.
+
+I hope I'm wrong and overlook something obvious.
+
+
+
+
+
+
+
+
+
