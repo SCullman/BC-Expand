@@ -1,5 +1,6 @@
 # Business Central: Navigation in Webservices and API
-This is a spike project to explore both the REST Webservices and the new custom API of Business Central. My interest here is especially in the O-Data navigation features. I would like to query whole entity trees with only  a single call using $expand. The [documentation](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-containments-associations) I have found so far on the subject is extremely scarce and also outdated.  
+This is a spike project to explore both the REST Webservices and the new custom API of Business Central. My interest here is especially in the OData navigation features. I would like to query whole entity trees with only a single call using $expand. 
+
 ## Setup
 ### A simple relation beween contacts
 
@@ -126,6 +127,10 @@ It also contains now our definition of Contact Relations:
 
 The name of the entity type is defined by the name of the service and not by the name of page or table. Fields are renamed to its Pascal case representation.
 
+The [documentation](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-containments-associations) about associations and  containment was not quite clear for me as a beginner in AL.
+
+That's why I'll try out the concept in the next sections.
+
 ### Associations
 
 OData also allows to include related resources within one single request using the query option `$expand`. In case of contact relations, it would be nice to include the contacts for Contact_No and Relation_to_Contact_No.
@@ -220,42 +225,47 @@ page 50104 "Contact Relation Listpart"
 
 ```
 
-This list part has now to be added to a page, for example `page5050.Contact Card` via a page extension.
+This list part has now to be added to the `page5052.Contact`(List) via a page extension.
 
 ```AL
-pageextension 50105 "ContectRelationExtension" extends "Contact Card"
+pageextension 50105 "ContactRelationExtension" extends "Contact List"
 {
     layout
     {
-        addafter(General)
+        addafter(Control1)
         {
             group("ContactRelGroup")
             {
-                Caption = 'Contact Relations';
-
-                part("Contact Relations"; "Contact Relation Listpart")
+                part("Relations"; "Contact Relation Listpart")
                 {
                     SubPageLink = "Contact No." = FIELD("No.");
-                    Visible = false;
                 }
             }
         }
     }
 }
 ```
+The group `ContactRelGroup` prevents that the ContactRelation  to appear as list within UI as part of tte contact list.
 
-After publishing `page5050.Contact Card` as web service ContactCard, it is possible to include the contactrelation of a contact:
+This page is already published for the association, so 
+this adds immediately the following navigaton property to the contact type:
 
-`...ContactCard('KT200038')?$expand=ContactCardContact_Relations` returns
+```xml
+ <NavigationProperty Name="ContactRelations" Type="Collection(NAV.ContactRelations)" ContainsTarget="true" />
+```
+The name of the property combines the name of the service and the name of the part. 
+
+`...Contact('KT200038')?$expand=ContactRelations` returns
 
 ```js
 {
-    "@odata.context": "http://bc160:7048/BC/ODataV4/$metadata#Company('Cronus%20AG')/ContactCard/$entity",
-    "@odata.etag": "W/\"JzQ0O1FTc0xuRWpQcUMrU0t0VFJRWFFwZzJiNnBacEU3U3Jvd2dCRGVKam5pLzQ9MTswMDsn\"",
+    "@odata.context": "http://bc160:7048/BC/ODataV4/$metadata#Company('Cronus%20AG')/Contact/$entity",
+    "@odata.etag": "W/\"JzQ0O3gwV05ZaVMyVElhTFgzZjVwWVVUdXhNUm92TWt4QWZqR2twQURVYTBIOHc9MTswMDsn\"",
     "No": "KT200038",
     "Name": "Karen Berg",
-    // ...a lot more fields ...
-    "ContactCardContact_Relations": [
+    "Company_Name": "DanMøbler",
+    // ....
+    "ContactRelations": [
         {
             "@odata.etag": "W/\"JzQ0O0YvQnArR0ppdlR2MU0vNzNJWk9HV3pqeEdxSndxMnpOc0ZBc2orS3BpNGc9MTswMDsn\"",
             "No": "R02",
@@ -278,86 +288,17 @@ After publishing `page5050.Contact Card` as web service ContactCard, it is possi
 }
 ```
 
-You can also use the asscociation within the containment, e.g. `ContactCard('KT200038')?$expand=ContactCardContact_Relations($expand=Relation_to_Contact_No_Link)` returns
 
-```js
-{
-    "@odata.context": "http://bc160:7048/BC/ODataV4/$metadata#Company('Cronus%20AG')/ContactCard/$entity",
-    "@odata.etag": "W/\"JzQ0O1FTc0xuRWpQcUMrU0t0VFJRWFFwZzJiNnBacEU3U3Jvd2dCRGVKam5pLzQ9MTswMDsn\"",
-    "No": "KT200038",
-    "Name": "Karen Berg",
-    //..
-    "ContactCardContact_Relations": [
-        {
-            "@odata.etag": "W/\"JzQ0O0YvQnArR0ppdlR2MU0vNzNJWk9HV3pqeEdxSndxMnpOc0ZBc2orS3BpNGc9MTswMDsn\"",
-            "No": "R02",
-            // ...
-            "Description": "reports to",
-            "Relation_to_Contact_No_Link": [
-                {
-                    "@odata.etag": "W/\"JzQ0O0c0VXhSbWNFTEhPU05WVWpNbVVEV0VITzFaaUxydXJMT3ZWdkJWWitYY1E9MTswMDsn\"",
-                    "No": "KT200022",
-                    "Name": "Lone Kuhlmann",
-                    "Company_Name": "DanMøbler",
-                    // ....
-                }
-            ]
-        },
-        {
-            "@odata.etag": "W/\"JzQ0OzJHc0poang3ZGpIMkRmZGxubzVMOFlQM2ZXa1hmNzhDRHRZMjF4ZDJST2c9MTswMDsn\"",
-            "No": "R03",
-            // ...
-            "Description": "is partner of",
-            "Relation_to_Contact_No_Link": [
-                {
-                    "@odata.etag": "W/\"JzQ0O2F6eHFDSzhnRndrMVlMNHRUMy9mejYxZ0M5UElLQjM1REtHeHRETVVDakk9MTswMDsn\"",
-                    "No": "KT200025",
-                    "Name": "Ole Gotfred",
-                    "Company_Name": "DanMøbler",
-                    "Post_Code": "2100",
-                    // ....
-                }
-            ]
-        }
-    ]
-}
+Can we go one step deeper into the rabbit hole?  Yes we can!
+
+* `Contact` offers containment for `ContactRelation`
+* `ContactRelation` has an association to `Contact` 
+
 ```
 
-Can we go one step deeper into the rabbit hole? Unfortunately not, because of the entity types:
-* `ContactCard` offers containment for `ContactRelation`
-* `ContactRelation` has an association to `Contact` (List)
 
-Poor Karen, it is still not possible to detect that Ole cheats here with Lone in a single request.
 
-Can we add the containment for `ContactRelation` to ``Contact` instead of `ContactCard`?  
-Lets give it a try:
-```AL
-pageextension 50106 "ContactRelationListExtension" extends "Contact List"
-{
-    layout
-    {
-        addafter(Control1)
-        {
-            group("ContactRelGroup")
-            {
-                part("Relations"; "Contact Relation Listpart")
-                {
-                    SubPageLink = "Contact No." = FIELD("No.");
-                }
-            }
-        }
-    }
-}
-```
-Hoorray, this adds the following navigaton property:
-```xml
- <NavigationProperty Name="ContactRelations" Type="Collection(NAV.ContactRelations)" ContainsTarget="true" />
-```
-The name of the property combines the name of the service and the name of the part. 
-
-The group `ContactRelGroup` prevents that the ContactRelation  appears as list within UI as part of te contact list.
-
-Lets give it a try `...Contact('KT200038')?$expand=ContactRelations($expand=Relation_to_Contact_No_Link($expand=ContactRelations))`:
+Lets give it a try and lets query `...Contact('KT200038')?$expand=ContactRelations($expand=Relation_to_Contact_No_Link($expand=ContactRelations))`:
 ```js
 {
     "@odata.context": "http://bc160:7048/BC/ODataV4/$metadata#Company('Cronus%20AG')/Contact/$entity",

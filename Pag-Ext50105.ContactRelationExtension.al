@@ -1,4 +1,4 @@
-pageextension 50106 "ContactRelationListExtension" extends "Contact List"
+pageextension 50105 "ContactRelationExtension" extends "Contact List"
 {
     layout
     {
