@@ -1,5 +1,7 @@
 # Business Central: Navigation in Webservices and API
-This is a spike project to explore both the REST Webservices and the new custom API of Business Central. My interest here is especially in the OData navigation features. I would like to query whole entity trees with only a single call using $expand. 
+This is a spike project to explore both the REST Webservices and the new custom API of Business Central. 
+
+My attention is on querying large object hierarchies with a single request using the OData navigation features and the query option $expand. 
 
 ## Setup
 ### A simple relation between contacts
@@ -139,7 +141,7 @@ OData also allows to include related resources within one single request using t
 
 Both fields are defined as `Table Relation`s to the contact table. That contact table, which is part of Busines Central, has a property `LookupPageID` which is set to `Page5052.Contact List`.
 
-This page needs to be published as web service with the service name `Contact`. Afterward the metadata has changed. It doesn't not only contains the entity type Contact, but it also adds navigation properties to the entity type ContactRelation:
+This page needs to be published as web service with the service name `Contact`. Afterward, the metadata has changed. It doesn't not only contains the entity type Contact, but it also adds navigation properties to the entity type ContactRelation:
 
 ```xml
 <EntityType Name="ContactRelation">
@@ -186,7 +188,7 @@ On the other hand, when I query a contact, I also want to include its ContactRel
 
 >Containments: Some pages in Business Central contain subpages. When you publish such a page, the subpages are automatically available in the web service as containments.
 
-A subpage is for example just a page of type ListPart. Besides that, the main difference to a page of type List is that it cannot be called separatly. Therefore a setting `UsageCategory` makes no sense here. 
+A subpage is for example just a page of type ListPart. Besides that, the main difference to a page of type List is that it cannot be called separately. Therefore a setting `UsageCategory` makes no sense here. 
 
 ```AL
 page 50104 "Contact Relation Listpart"
@@ -245,10 +247,9 @@ pageextension 50105 "ContactRelationExtension" extends "Contact List"
     }
 }
 ```
-The group `ContactRelGroup` prevents  the ContactRelation  to appear as a list within UI as part of the contact list.
+The group `ContactRelGroup` prevents the ContactRelation to appear as a list within UI as part of the contact list.
 
-This page is already published for the association, so 
-this adds immediately the following navigaton property to the contact type:
+This page is already published for the association, so this adds immediately the following navigaton property to the contact type:
 
 ```xml
  <NavigationProperty Name="ContactRelations" Type="Collection(NAV.ContactRelations)" ContainsTarget="true" />
@@ -294,9 +295,9 @@ Can we go one step deeper into the rabbit hole? Yes, we can!
 * `Contact` offers containment for `ContactRelation`
 * `ContactRelation` has an association to `Contact` 
 
-```
 
 Lets give it a try and lets query `...Contact('KT200038')?$expand=ContactRelations($expand=Relation_to_Contact_No_Link($expand=ContactRelations))`:
+
 ```js
 {
     "@odata.context": "http://bc160:7048/BC/ODataV4/$metadata#Company('Cronus%20AG')/Contact/$entity",
