@@ -450,7 +450,7 @@ page 50103 "Contact API"
 
 Now both `contactRelation` and `contact` are listed as types in $metadata:
 
-```
+```xml
 <EntityType Name="contactRelation">
     <Key>
         <PropertyRef Name="number" />
@@ -488,7 +488,7 @@ So far I have not found a way to get and use both navigation properties 🤷‍�
 Maybe we get more insight into containments.
 
 Therefore I add the following part to ContactRelationApi:
-```
+```al
     part(relations; 50102)
     {
         EntityName = 'contactRelation';
