@@ -2,7 +2,7 @@
 This is a spike project to explore both the REST Webservices and the new custom API of Business Central. My interest here is especially in the OData navigation features. I would like to query whole entity trees with only a single call using $expand. 
 
 ## Setup
-### A simple relation beween contacts
+### A simple relation between contacts
 
 For this purpose, there is a simple table called `Tab50100.ContactRelation`.
 
@@ -35,7 +35,7 @@ table 50100 "Contact Relation"
     keys { key(PK; "No."){}}
 }
 ```
-For each contact a list of their relationships (e.g. "Child" or "Partner of") to other contacts can now be stored. Therefore the table contains the two fields `Contact No` and `Relation to Contact No.` which handle the table relations to the built in table `Contact` (5050).
+For each contact, a list of their relationships (e.g. "Child" or "Partner of") to other contacts can now be stored. Therefore the table contains the two fields `Contact No` and `Relation to Contact No.` which handle the table relations to the built-in table `Contact` (5050).
 
 ### A Page for Editing
 
@@ -83,11 +83,11 @@ This allows me to enter a few relations:
 
 ## OData Web Services
 Business Central allows to [publish page and queries](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/publish-web-service) as OData Web Services. 
-To publish the page above, I navigate to the page `Web Services`, add a new one, and select page 50101 ContactRelation. Service name is also set to ContactRelatition. After enabling, the service is available directly and can be queried.   
+To publish the page above, I navigate to the page `Web Services`, add a new one, and select page 50101 ContactRelation. The name of the service is also set to ContactRelation. After enabling, the service is available directly and can be queried.   
 
 A get request to`{{serviceurl}}/ODataV4/Company('{{company}}')/ContactRelation` retrieves all entered contact relations as JSON. [Query options](https://www.odata.org/getting-started/basic-tutorial/#queryData) like `$filter` and `$select` allows to optimize requests. 
 
-Part of OData is also the ability to obtain the Enitity Data Model. The metadata is available at the service root with the url `{{serviceurl}}/ODataV4/$metadata`. That document is an XML-based file format.
+Part of OData is also the ability to obtain the Entity Data Model. The metadata is available at the service root with the URI `{{serviceurl}}/ODataV4/$metadata`. That document is an XML-based file format.
 
 It also contains now our definition of Contact Relations:
 
@@ -125,9 +125,9 @@ It also contains now our definition of Contact Relations:
 </EntityType>
 ```
 
-The name of the entity type is defined by the name of the service and not by the name of page or table. Fields are renamed to its Pascal case representation.
+The name of the entity type is defined by the name of the service and not by the name of the page or table. Fields are renamed to its Pascal case representation.
 
-The [documentation](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-containments-associations) about associations and  containment was not quite clear for me as a beginner in AL.
+The [documentation](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-containments-associations) about associations and containment was not quite clear for me as a beginner in AL.
 
 That's why I'll try out the concept in the next sections.
 
@@ -139,7 +139,7 @@ OData also allows to include related resources within one single request using t
 
 Both fields are defined as `Table Relation`s to the contact table. That contact table, which is part of Busines Central, has a property `LookupPageID` which is set to `Page5052.Contact List`.
 
-This page needs to be published as webservice with the service name `Contact`. Afterwards the metadata has changed. It doesn't not only contains the entity type Contact, but it also adds navigation properties to the entit type ContactRelation:
+This page needs to be published as web service with the service name `Contact`. Afterward the metadata has changed. It doesn't not only contains the entity type Contact, but it also adds navigation properties to the entity type ContactRelation:
 
 ```xml
 <EntityType Name="ContactRelation">
@@ -150,7 +150,7 @@ This page needs to be published as webservice with the service name `Contact`. A
 </EntityType>
 ```
 
-These association have the name of the field with the table relation folloewd by `_Link`. PLease note the type of the navigation property. While a table relation is a look up, which points to a single entity, the type indicates a _collection_ of type Contact.
+These associations have the name of the field with the table relation followed by `_Link`. Please note the type of the navigation property. While a table relation is a lookup, which points to a single entity, the type indicates a _collection_ of type Contact.
 
 `...ContactRelation('R01')?$expand=Relation_to_Contact_No_Link, Contact_No_Link` will return for our example data: 
 
@@ -186,7 +186,7 @@ On the other hand, when I query a contact, I also want to include its ContactRel
 
 >Containments: Some pages in Business Central contain subpages. When you publish such a page, the subpages are automatically available in the web service as containments.
 
-A subpage is for example just a page of type ListPart. Beside that, the main difference to a page of type List is that it cannot be called seperatly. Therefore a setting `UsageCategory` makes no sense here. 
+A subpage is for example just a page of type ListPart. Besides that, the main difference to a page of type List is that it cannot be called separatly. Therefore a setting `UsageCategory` makes no sense here. 
 
 ```AL
 page 50104 "Contact Relation Listpart"
@@ -245,7 +245,7 @@ pageextension 50105 "ContactRelationExtension" extends "Contact List"
     }
 }
 ```
-The group `ContactRelGroup` prevents that the ContactRelation  to appear as list within UI as part of tte contact list.
+The group `ContactRelGroup` prevents  the ContactRelation  to appear as a list within UI as part of the contact list.
 
 This page is already published for the association, so 
 this adds immediately the following navigaton property to the contact type:
@@ -289,14 +289,12 @@ The name of the property combines the name of the service and the name of the pa
 ```
 
 
-Can we go one step deeper into the rabbit hole?  Yes we can!
+Can we go one step deeper into the rabbit hole? Yes, we can!
 
 * `Contact` offers containment for `ContactRelation`
 * `ContactRelation` has an association to `Contact` 
 
 ```
-
-
 
 Lets give it a try and lets query `...Contact('KT200038')?$expand=ContactRelations($expand=Relation_to_Contact_No_Link($expand=ContactRelations))`:
 ```js
