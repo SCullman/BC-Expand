@@ -25,9 +25,21 @@ page 50103 "Contact Api"
                 {
                     EntityName = 'contactRelation';
                     EntitySetName = 'contactRelations';
+                    SubPageLink = "Contact No." = FIELD("No.");
+                }
+                part(relationsToOthers; 50106)
+                {
+                    EntityName = 'contactRelationTo';
+                    EntitySetName = 'contactRelationsTo';
+                    SubPageLink = "Contact No." = FIELD("No.");
+                }
+                part(relationsFromOthers; 50107)
+                {
+                    EntityName = 'contactRelationFrom';
+                    EntitySetName = 'contactRelationsFrom';
+                    SubPageLink = "Relation to Contact No." = FIELD("No.");
                 }
             }
         }
     }
-
 }

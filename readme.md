@@ -493,6 +493,7 @@ Therefore I add the following part to ContactRelationApi:
     {
         EntityName = 'contactRelation';
         EntitySetName = 'contactRelations';
+        SubPageLink = "Contact No." = FIELD("No.");
     }
 ```
 
@@ -503,14 +504,172 @@ Now the navigation properties for contact look like this:
 ```
 The name of the part relations is ignored. Instead, we have to declare EntityName and EntitySchema **again**. And it has to be the very same values as defined before on page 50102.
 
+So far I have not found a way to get and use multiple navigation properties of the same type in one entity. And I dislike the idea that EntityName is used as the name of the navigation. Naming is serious, and should not be overridden by simple conventions like a sequence of fields.
+
+### Refactoring for Meaning
+
+Maybe I was doing it wrong?
+
+I wanna do queries. And I want them being meaningful. And maybe it is just wrong to look for multiple navigation properties.
+
+Let us look at the Contact Relations again: 
+
+The fields `Contact No.` and `Relation to Contact No.` represents a relation _from_ a contact _to_ a different contact. 
+On a query, I wanna either know all relations from a contact to all relations pointing to that contact.
+
+I should add new API pages for them that express these relations:
+
+```al
+page 50106 "Contact Relation To"
+{
+    PageType = API;
+    APIGroup = 'queries';
+    APIPublisher = 'publisher';
+    APIVersion = 'v1.0';
+    EntityName = 'contactRelationTo';
+    EntitySetName = 'contactRelationsTo';
+    ODataKeyFields = "No.";
+    SourceTable = "Contact Relation";
+    DelayedInsert = true;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field(number; "No.") { }
+                field(description; "Description") { }
+                field(relationToContactNo; "Relation to Contact No.") { }
+            }
+        }
+    }
+}
+
+page 50107 "Contact Relation From"
+{
+    APIGroup = 'queries';
+    APIPublisher = 'publisher';
+    APIVersion = 'v1.0';
+    EntityName = 'contactRelationFrom';
+    EntitySetName = 'contactRelationsFrom';
+    ODataKeyFields = "No.";
+    PageType = API;
+    SourceTable = "Contact Relation";
+    DelayedInsert = true;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field(number; "No.") { }
+                field(description; "Description") { }
+                field(contactNo; "Contact No.") { }
+            }
+        }
+    }
+}
+```
+And we use these within the Contact API:
+```al
+    part(relationsToOthers; 50106)
+    {
+        EntityName = 'contactRelationTo';
+        EntitySetName = 'contactRelationsTo';
+        SubPageLink = "Contact No." = FIELD("No.");
+    }
+    part(relationsFromOthers; 50107)
+    {
+        EntityName = 'contactRelationFrom';
+        EntitySetName = 'contactRelationsFrom';
+        SubPageLink = "Relation to Contact No." = FIELD("No.");
+    }
+```
+This results in following $metadata for contacts:
+```xml
+    <EntityType Name="contact">
+        <Key>
+            <PropertyRef Name="number" />
+        </Key>
+        <Property Name="number" Type="Edm.String" Nullable="false" MaxLength="20" />
+        <Property Name="firstName" Type="Edm.String" MaxLength="30" />
+        <Property Name="surname" Type="Edm.String" MaxLength="30" />
+        <Property Name="name" Type="Edm.String" MaxLength="100" />
+        <Property Name="companyNo" Type="Edm.String" MaxLength="20" />
+        <NavigationProperty Name="contactRelations" Type="Collection(Microsoft.NAV.contactRelation)" ContainsTarget="true" />
+        <NavigationProperty Name="contactRelationsTo" Type="Collection(Microsoft.NAV.contactRelationTo)" ContainsTarget="true" />
+        <NavigationProperty Name="contactRelationsFrom" Type="Collection(Microsoft.NAV.contactRelationFrom)" ContainsTarget="true" />
+        <NavigationProperty Name="contact" Type="Microsoft.NAV.contact" ContainsTarget="true" />
+    </EntityType>
+```
+Much better. I still wish I could provide a better name for the navigation over `Company No.` than _contact_. However, now the relations look much better and more meaningful.
+
+Here an example for a query and its result:   
+`...contacts('KT200038')?$expand=contactRelationsTo($expand=contact), contactRelationsFrom($expand=contact)`
+```json
+{
+    "@odata.context": "http://bc160:7048/BC/api/publisher/queries/v1.0/$metadata#companies(6febec3e-388d-ea11-bb38-001dd8b76686)/contacts/$entity",
+    "@odata.etag": "W/\"JzQ0O1l0U2hET1B6VGplQU9leGZMRExsTkVBaExqS3VZaVMyc0xkSVZsS0NXZU09MTswMDsn\"",
+    "number": "KT200038",
+    "firstName": "Karen",
+    "surname": "Berg",
+    "name": "Karen Berg",
+    "companyNo": "KT100016",
+    "contactRelationsTo": [
+        {
+            "@odata.etag": "W/\"JzQ0O0lDTXBBd2M5SDVYMmhsOHZ3SHUya3hsamwraWkxbDBtZXBCbzVETWxHV1k9MTswMDsn\"",
+            "number": "R02",
+            "description": "reports to",
+            "relationToContactNo": "KT200022",
+            "contact": {
+                "@odata.etag": "W/\"JzQ0O0x1VDVMVVF6ZG9LOEdqc3JxY29RU0dVMlNGcGVGb0RhaldMcGFxR09qZm89MTswMDsn\"",
+                "number": "KT200022",
+                "firstName": "Lone",
+                "surname": "Kuhlmann",
+                "name": "Lone Kuhlmann",
+                "companyNo": "KT100016"
+            }
+        },
+        {
+            "@odata.etag": "W/\"JzQ0OytKK0VOY3psZnF4V21nMlpXWEE2YWhkbzh4U0hWK0IrV0FCd0tpdnE1R2c9MTswMDsn\"",
+            "number": "R03",
+            "description": "is partner of",
+            "relationToContactNo": "KT200025",
+            "contact": {
+                "@odata.etag": "W/\"JzQ0O3hxL3FLRU50KzV6Wm1sYSt1cGNLSTJSWGwzNE80SVFyajhGLzRMM285aE09MTswMDsn\"",
+                "number": "KT200025",
+                "firstName": "Ole",
+                "surname": "Gotfred",
+                "name": "Ole Gotfred",
+                "companyNo": "KT100016"
+            }
+        }
+    ],
+    "contactRelationsFrom": [
+        {
+            "@odata.etag": "W/\"JzQ0O1dadFFBblBUUmZPZkhuRXZRVmtLUXMvc2lENk9sSU5La0pyQWpTQTlBZms9MTswMDsn\"",
+            "number": "R01",
+            "description": "reports to",
+            "contactNo": "KT200058",
+            "contact": {
+                "@odata.etag": "W/\"JzQ0O3k1YW9QUmJXWnhBRHpsV0ROVGQ4dHluODkweHF6UGlYLy9KeDlubU0rUkk9MTswMDsn\"",
+                "number": "KT200058",
+                "firstName": "Jan",
+                "surname": "Christiansen",
+                "name": "Jan Christiansen",
+                "companyNo": "KT100016"
+            }
+        }
+    ]
+}
+```
+
 ### Conclusion for Custom API
 The direction Microsoft and Business Central are taking with the Custom API is the right one.
 I appreciate the clean separation of APIs from other APIs or even the UI. They can develop without dependencies. 
 
 Also, a simple association no longer results in a collection.  I also like that both required AL code and resulting $metadata are now denser.
 
-So far I have not found a way to get and use multiple navigation properties of the same type in one entity. And I dislike the idea that EntityName is used as the name of the navigation. Naming is serious, and should not be overridden by simple conventions like a sequence of fields.
-
-I don't think I'll get used to the Custom API that quickly, at least when I want to use custom APIs for querying data.
-
-I hope I'm wrong and overlook something obvious.
+You have to think differently about your queries and it is best to design them explicitly. 
