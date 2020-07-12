@@ -20,7 +20,14 @@ page 50103 "Contact Api"
                 field(firstName; "First Name") { }
                 field(surname; Surname) { }
                 field(name; Name) { }
-                field(companyNo; "Company No.") { }
+
+                part(companyContact; 50108)
+                {
+                    EntityName = 'companyContact';
+                    EntitySetName = 'companyContacts';
+                    SubPageLink = "No." = FIELD("No.");
+                }
+
                 part(relations; 50102)
                 {
                     EntityName = 'contactRelation';

@@ -506,7 +506,7 @@ The name of the part relations is ignored. Instead, we have to declare EntityNam
 
 So far I have not found a way to get and use multiple navigation properties of the same type in one entity. And I dislike the idea that EntityName is used as the name of the navigation. Naming is serious, and should not be overridden by simple conventions like a sequence of fields.
 
-### Refactoring for Meaning
+### Refactoring Containments for Meaning
 
 Maybe I was doing it wrong?
 
@@ -665,6 +665,104 @@ Here an example for a query and its result:
     ]
 }
 ```
+### Refactoring Associations as Containments
+
+Can I use the same trick for associations? Of course!
+
+Therefore I create a new page API `Company Contact`.
+
+```al
+page 50108 "Company Contact"
+{
+
+    APIGroup = 'queries';
+    APIPublisher = 'publisher';
+    APIVersion = 'v1.0';
+    DelayedInsert = true;
+    EntityName = 'companyContact';
+    EntitySetName = 'companyContacts';
+    PageType = API;
+    SourceTable = Contact;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field(companyNo; "Company No.") { }
+                field(companyName; "Company Name") { }
+            }
+        }
+    }
+}
+```
+
+And, inside `Page50103.ContactApi`, I replace 
+
+```al
+    field(companyNo; "Company No.") { }
+```
+
+with 
+
+```al
+    part(companyContact; 50108)
+    {
+        EntityName = 'companyContact';
+        EntitySetName = 'companyContacts';
+        SubPageLink = "No." = FIELD("No.");
+    }
+```
+
+For convenience, I have not yet raised the API number, as would be appropriate for such a breaking change.
+
+But the `$metadata` changed. The more or less meaningless navigation property `contact` has been changed into a navigationProperty `companyContacts`.
+
+```xml
+<EntityType Name="contact">
+    <Key>
+        <PropertyRef Name="number" />
+    </Key>
+    <Property Name="number" Type="Edm.String" Nullable="false" MaxLength="20" />
+    <Property Name="firstName" Type="Edm.String" MaxLength="30" />
+    <Property Name="surname" Type="Edm.String" MaxLength="30" />
+    <Property Name="name" Type="Edm.String" MaxLength="100" />
+    <NavigationProperty Name="companyContacts" Type="Collection(Microsoft.NAV.companyContact)" ContainsTarget="true" />
+    <NavigationProperty Name="contactRelations" Type="Collection(Microsoft.NAV.contactRelation)" ContainsTarget="true" />
+    <NavigationProperty Name="contactRelationsTo" Type="Collection(Microsoft.NAV.contactRelationTo)" ContainsTarget="true" />
+    <NavigationProperty Name="contactRelationsFrom" Type="Collection(Microsoft.NAV.contactRelationFrom)" ContainsTarget="true" />
+</EntityType>
+```
+
+The cardinality still does not fit, there can only be one company contact linked to a contact. 
+
+But now I can query for `contacts('KT200038')?$expand=companyContacts($expand=contact)`:
+```json
+{
+    "@odata.context": "http://bc160:7048/BC/api/publisher/queries/v1.0/$metadata#companies(6febec3e-388d-ea11-bb38-001dd8b76686)/contacts/$entity",
+    "@odata.etag": "W/\"JzQ0O2tnbU5SSG5nV2g4WVJyRzlSRjR5dWF6YmxaTXdEWk5nWVlRRjJ0OFAyRjA9MTswMDsn\"",
+    "number": "KT200038",
+    "firstName": "Karen",
+    "surname": "Berg",
+    "name": "Karen Berg",
+    "companyContacts": [
+        {
+            "@odata.etag": "W/\"JzQ0Oy82eGlMT3pPWFBwR2hTcGgrVVdNMWswNEdTWUwvNzBGVVVLR1lKQ2Zhd0U9MTswMDsn\"",
+            "no": "KT200038",
+            "companyNo": "KT100016",
+            "companyName": "DanMøbler",
+            "contact": {
+                "@odata.etag": "W/\"JzQ0O0EvTlQxYThHMUpzUCtQUzBhWXcvMkczdWNsU2NqS0FiSFJUTHprNnZSY0U9MTswMDsn\"",
+                "number": "KT100016",
+                "firstName": "",
+                "surname": "",
+                "name": "DanMøbler"
+            }
+        }
+    ]
+}
+```
 
 ### Conclusion for Custom API
 The direction Microsoft and Business Central are taking with the Custom API is the right one.
@@ -672,4 +770,4 @@ I appreciate the clean separation of APIs from other APIs or even the UI. They c
 
 Also, a simple association no longer results in a collection.  I also like that both required AL code and resulting $metadata are now denser.
 
-You have to think differently about your queries and it is best to design them explicitly. 
+You have to think differently about your queries. It is best to design any relation explicitly as own page and refer it as part, at least from a perspective of querying data. 
