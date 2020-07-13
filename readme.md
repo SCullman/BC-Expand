@@ -417,7 +417,9 @@ Therfore we can query $metadata and check the entity type:
 ```
 ### Association
 
-No navigation properties yet. Well, as the custom API is independent of the OData web service, it is required to define also an API for Contact:
+No navigation properties yet. 
+
+Well, as the custom API is independent of the OData web service, it is required to define also an API for Contact:
 
 ``` al
 page 50103 "Contact API"
@@ -735,7 +737,7 @@ But the `$metadata` changed. The more or less meaningless navigation property `c
 </EntityType>
 ```
 
-The cardinality still does not fit, there can only be one company contact linked to a contact. 
+The cardinality does not fit anymore; as there can only be one company contact linked to a contact. But in fact, that is comparable to me with the OData web services.
 
 But now I can query for `contacts('KT200038')?$expand=companyContacts($expand=contact)`:
 ```json
